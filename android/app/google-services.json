@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "860690860265",
+    "project_id": "tiffinez-951e0",
+    "storage_bucket": "tiffinez-951e0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:860690860265:android:4463021cc05913049b0878",
+        "android_client_info": {
+          "package_name": "com.example.tiffin_ez_01"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHvPOYYLilAhM9PV5MALw2Tnm0dlkeUVQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
