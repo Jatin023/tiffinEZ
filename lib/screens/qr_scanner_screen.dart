@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:convert'; // For JSON parsing
-import 'payment_screen.dart'; // Import PaymentScreen
+import 'tiffin_update_screen.dart'; // Import the new TiffinUpdateScreen
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -15,9 +15,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   MobileScannerController controller = MobileScannerController();
   int _selectedIndex = 2; // QR Code is selected by default (index 2)
   String? tiffinServiceName;
-  String? price;
-  String? upiId;
-  final TextEditingController _amountController = TextEditingController();
 
   void _onItemTapped(int index) {
     setState(() {
@@ -35,10 +32,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       // Already on QRScannerScreen
         break;
       case 3:
-      // Navigate to Orders screen (placeholder)
+        Navigator.pushNamed(context, '/orders_screen');
         break;
       case 4:
-      // Navigate to Settings screen (placeholder)
+        Navigator.pushNamed(context, '/settings');
         break;
     }
   }
@@ -56,31 +53,25 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
     // Reset previous data
     tiffinServiceName = null;
-    price = null;
-    upiId = null;
-    _amountController.clear(); // Clear TextField to avoid random values
 
-    // Try UPI URL format (e.g., upi://pay?pa=example@upi&pn=TiffinService&am=500)
+    // Try UPI URL format (e.g., upi://pay?pa=example@upi&pn=TiffinService)
     try {
       final uri = Uri.parse(qrData);
       if (uri.scheme == 'upi' && uri.host == 'pay') {
         tiffinServiceName = uri.queryParameters['pn']?.trim();
-        price = uri.queryParameters['am']?.trim();
-        upiId = uri.queryParameters['pa']?.trim();
-        print('UPI Parsed - tiffinServiceName: $tiffinServiceName, price: $price, upiId: $upiId');
+        print('UPI Parsed - tiffinServiceName: $tiffinServiceName');
       }
     } catch (e) {
       print('UPI URL parsing failed: $e');
     }
 
     // Try colon-separated format (e.g., "TiffinService:500 INR")
-    if (tiffinServiceName == null || price == null) {
+    if (tiffinServiceName == null) {
       try {
         final parts = qrData.split(':');
-        if (parts.length == 2) {
+        if (parts.length >= 1) {
           tiffinServiceName = parts[0].trim();
-          price = parts[1].trim();
-          print('Colon Parsed - tiffinServiceName: $tiffinServiceName, price: $price');
+          print('Colon Parsed - tiffinServiceName: $tiffinServiceName');
         }
       } catch (e) {
         print('Colon-separated parsing failed: $e');
@@ -88,13 +79,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     }
 
     // Try comma-separated format (e.g., "TiffinService,500")
-    if (tiffinServiceName == null || price == null) {
+    if (tiffinServiceName == null) {
       try {
         final parts = qrData.split(',');
-        if (parts.length == 2) {
+        if (parts.length >= 1) {
           tiffinServiceName = parts[0].trim();
-          price = parts[1].trim();
-          print('Comma Parsed - tiffinServiceName: $tiffinServiceName, price: $price');
+          print('Comma Parsed - tiffinServiceName: $tiffinServiceName');
         }
       } catch (e) {
         print('Comma-separated parsing failed: $e');
@@ -102,33 +92,18 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     }
 
     // Try JSON format
-    if (tiffinServiceName == null || price == null) {
+    if (tiffinServiceName == null) {
       try {
         final decodedData = jsonDecode(qrData);
         tiffinServiceName = decodedData['tiffinServiceName'] as String?;
-        price = decodedData['price'] as String?;
-        upiId = decodedData['upiId'] as String?;
-        print('JSON Parsed - tiffinServiceName: $tiffinServiceName, price: $price, upiId: $upiId');
+        print('JSON Parsed - tiffinServiceName: $tiffinServiceName');
       } catch (e) {
         print('JSON parsing failed: $e');
       }
     }
 
     // Clean and validate the parsed data
-    if (tiffinServiceName != null && price != null) {
-      // Clean price (remove currency units, spaces, etc.)
-      price = price!.replaceAll(RegExp(r'[^0-9]'), '');
-      print('Cleaned price: $price');
-
-      // Validate price
-      if (price!.isEmpty || int.tryParse(price!) == null || int.parse(price!) <= 0) {
-        print('Invalid price: $price');
-        price = null; // Invalidate price if not a valid number
-      } else {
-        // Set valid price as default in TextField
-        _amountController.text = price!;
-      }
-
+    if (tiffinServiceName != null) {
       // Clean tiffinServiceName (remove special characters, extra spaces)
       tiffinServiceName = tiffinServiceName!.trim().replaceAll(RegExp(r'[^\w\s]'), '');
 
@@ -140,47 +115,22 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         return;
       }
 
-      // Update UI with parsed data
-      setState(() {
-        result = BarcodeCapture(barcodes: [Barcode(rawValue: qrData)]);
-      });
-    } else {
-      // If no valid data, keep TextField blank
-      _amountController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Unsupported QR Code format: $qrData'),
-          duration: const Duration(seconds: 5),
-        ),
-      );
-    }
-  }
-
-  void _proceedToPayment() {
-    final enteredAmount = _amountController.text.trim();
-
-    // Validate entered amount
-    if (enteredAmount.isEmpty || int.tryParse(enteredAmount) == null || int.parse(enteredAmount) <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid amount')),
-      );
-      return;
-    }
-
-    if (tiffinServiceName != null) {
+      // Navigate to TiffinUpdateScreen after successful scan
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PaymentScreen(
+          builder: (context) => TiffinUpdateScreen(
             tiffinServiceName: tiffinServiceName!,
-            price: enteredAmount, // Use user-entered amount
-            upiId: upiId,
+            numberOfTiffins: 2, // Hardcoding as per the image
           ),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No valid QR code data to proceed')),
+        SnackBar(
+          content: Text('Unsupported QR Code format: $qrData'),
+          duration: const Duration(seconds: 5),
+        ),
       );
     }
   }
@@ -219,102 +169,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               ),
             ),
           ),
-          // Data display with more space
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Scanned QR Code Details:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (tiffinServiceName != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.store, size: 20, color: Colors.red),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Tiffin Service: $tiffinServiceName',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ],
-                          ),
-                        if (upiId != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.payment, size: 20, color: Colors.red),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'UPI ID: $upiId',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ],
-                          ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            const Icon(Icons.currency_rupee, size: 20, color: Colors.red),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: _amountController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Amount (₹)',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.currency_rupee, color: Colors.red),
-                                ),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (tiffinServiceName == null && upiId == null && _amountController.text.isEmpty)
-                          const Text(
-                            'Scan a QR code',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        const SizedBox(height: 16),
-                        if (tiffinServiceName != null)
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: _proceedToPayment,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Proceed to Payment',
-                                style: TextStyle(fontSize: 16, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
+          // Simple message instead of payment details
+          const Expanded(
+            child: Center(
+              child: Text(
+                'Scan a QR code to update tiffin details',
+                style: TextStyle(fontSize: 16),
               ),
             ),
           ),
@@ -354,7 +214,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   void dispose() {
     controller.dispose();
-    _amountController.dispose();
     super.dispose();
   }
 }

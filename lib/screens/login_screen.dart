@@ -27,10 +27,14 @@ class _LoginScreenState extends State<LoginScreen> {
       },
       codeSent: (verificationId, _) {
         setState(() => isLoading = false);
-        Navigator.pushNamed(context, '/otp', arguments: {
-          'verificationId': verificationId,
-          'phone': phoneController.text,
-        });
+        Navigator.pushNamed(
+          context,
+          '/otp',
+          arguments: {
+            'verificationId': verificationId,
+            'phoneNumber': phoneController.text, // ✅ Fixed key here
+          },
+        );
       },
       codeAutoRetrievalTimeout: (_) {},
     );
@@ -42,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: const Color(0xFFC21515),
       body: Stack(
         children: [
-          // Upper half with pattern
+          // Background image container
           Positioned(
             top: -38,
             left: 0,
@@ -63,7 +67,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          // Logo with specified position and style
+
+          // Logo
           Positioned(
             top: 350,
             left: 77,
@@ -77,7 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          // Main content with scroll
+
+          // Form
           SafeArea(
             child: SingleChildScrollView(
               child: Padding(
@@ -85,8 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 450), // Space for logo
-                    // Login text
+                    const SizedBox(height: 450),
                     const Text(
                       'Login',
                       style: TextStyle(
@@ -96,7 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Phone number input
                     TextField(
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
@@ -120,12 +124,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-                        hintText: '9XXXXXXXXX17',
+                        hintText: '9XXXXXXXXX',
                         hintStyle: const TextStyle(color: Colors.grey),
                         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                       ),
                     ),
                     const SizedBox(height: 20),
+
                     // Continue button
                     ElevatedButton(
                       onPressed: isLoading ? null : sendOTP,
@@ -145,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Terms and conditions text
+
                     const Text(
                       'I accept that I have read & understood the\nPrivacy Policy and T&Cs.',
                       textAlign: TextAlign.center,
@@ -155,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    // Navigate to SignupScreen
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -174,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20), // Extra padding at the bottom
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),

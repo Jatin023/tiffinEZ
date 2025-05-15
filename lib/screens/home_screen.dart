@@ -14,10 +14,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Fetch the phone number and name passed from ProfileScreen
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>?;
-    if (args != null) {
-      userName = args['name'] ?? "User";
+
+    // ✅ Fully safe argument access
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    if (args is Map<String, dynamic>) {
+      final maybeName = args['name'];
+      if (maybeName is String && maybeName.trim().isNotEmpty) {
+        setState(() {
+          userName = maybeName;
+        });
+      }
     }
   }
 
@@ -25,24 +32,22 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
-    // Add navigation logic for other tabs
+
+    // ✅ Bottom nav routing
     switch (index) {
       case 0:
-      // Already on HomeScreen
         break;
       case 1:
-      // Navigate to AllTiffinServicesScreen
         Navigator.pushNamed(context, '/all-tiffin-services');
         break;
       case 2:
-      // Navigate to QRScannerScreen
         Navigator.pushNamed(context, '/qr-scanner');
         break;
       case 3:
-      // Navigate to Orders screen (placeholder)
+        Navigator.pushNamed(context, '/orders');
         break;
       case 4:
-      // Navigate to Settings screen (placeholder)
+        Navigator.pushNamed(context, '/settings');
         break;
     }
   }
@@ -66,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome text
             RichText(
               text: TextSpan(
                 text: 'Welcome, ',
@@ -88,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            // Your Tiffin Service title
             const Text(
               'Your Tiffin Service:',
               style: TextStyle(
@@ -98,7 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            // Tiffin service card
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
@@ -150,12 +152,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 5),
                         Row(
-                          children: [
-                            const Icon(Icons.star, color: Colors.yellow, size: 16),
-                            const Icon(Icons.star, color: Colors.yellow, size: 16),
-                            const Icon(Icons.star, color: Colors.yellow, size: 16),
-                            const Icon(Icons.star_border, color: Colors.grey, size: 16),
-                            const Icon(Icons.star_border, color: Colors.grey, size: 16),
+                          children: const [
+                            Icon(Icons.star, color: Colors.yellow, size: 16),
+                            Icon(Icons.star, color: Colors.yellow, size: 16),
+                            Icon(Icons.star, color: Colors.yellow, size: 16),
+                            Icon(Icons.star_border, color: Colors.grey, size: 16),
+                            Icon(Icons.star_border, color: Colors.grey, size: 16),
                           ],
                         ),
                       ],
