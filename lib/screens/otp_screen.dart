@@ -33,15 +33,20 @@ class _OTPScreenState extends State<OTPScreen> {
       // ✅ 2. Sign in with Firebase
       await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // ✅ 3. Get Firebase ID token (optional)
-      final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+      // ✅ 3. Get Firebase ID token
+      final idToken = await FirebaseAuth.instance.currentUser?.getIdToken(true);
 
-      // ✅ 4. MOCK JWT (replace this when backend ready)
-      final fakeJWT = "mock.jwt.token.${DateTime.now().millisecondsSinceEpoch}";
+      if (idToken == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to get authentication token.")),
+        );
+        setState(() => _loading = false);
+        return;
+      }
 
-      // ✅ 5. Store JWT in SharedPreferences
+      // ✅ 4. Store the REAL token in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("jwt_token", fakeJWT);
+      await prefs.setString("auth_token", idToken);
 
       // ✅ 6. Navigate to home screen
       if (mounted) {

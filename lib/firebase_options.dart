@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart'
 /// import 'firebase_options.dart';
 /// // ...
 /// await Firebase.initializeApp(
-///   options: DefaultFirebaseOptions.currentPlatform,
+///   options: DefaultFirebaseOptions.currentPlatfnpm install -g @google/gemini-cliorm,
 /// );
 /// ```
 class DefaultFirebaseOptions {
